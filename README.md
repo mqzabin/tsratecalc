@@ -14,3 +14,4 @@ The intent is to provide a way to convert a large interval interest rate (e.g. 1
 - [ ] Implement a benchmark to compare the module performance with the generic `"shopspring/decimal".Decimal.Pow` method.
 - [ ] Implement shopspring/decimal interface adapters.
 - [ ] Publish a blog post explaining the Taylor Series method and the module implementation.
+- [ ] Implement convergence radius analysis. 
