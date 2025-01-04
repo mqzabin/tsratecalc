@@ -1,14 +1,14 @@
-package tsratecalc
+package basecalc
 
 import (
 	"fmt"
 )
 
-func computeIntToDecimalCache(newFromInt func(int64) (Decimal, error), maxValue uint32) ([]Decimal, error) {
+func computeIntToDecimalCache[Decimal Operator[Decimal]](newFromInt func(uint64) (Decimal, error), maxValue uint64) ([]Decimal, error) {
 	cacheSize := maxValue + 1
 
 	intToDecimal := make([]Decimal, cacheSize)
-	for i := range int64(len(intToDecimal)) {
+	for i := range uint64(len(intToDecimal)) {
 		dec, err := newFromInt(i)
 		if err != nil {
 			return nil, fmt.Errorf("creating '%d' decimal from integer: %w", i, err)
@@ -20,7 +20,7 @@ func computeIntToDecimalCache(newFromInt func(int64) (Decimal, error), maxValue 
 	return intToDecimal, nil
 }
 
-func computeMaxError(intToDecimal []Decimal, precision uint32) (Decimal, error) {
+func computeMaxError[Decimal Operator[Decimal]](intToDecimal []Decimal, precision uint64) (Decimal, error) {
 	one := intToDecimal[1]
 	two := intToDecimal[2]
 
@@ -29,14 +29,18 @@ func computeMaxError(intToDecimal []Decimal, precision uint32) (Decimal, error) 
 	// 10^(precision+1)
 	maxError, err := one.PowInt(precision + 1)
 	if err != nil {
-		return nil, fmt.Errorf("raising 10 to the power of precision+1: %w", err)
+		var zeroValue Decimal
+
+		return zeroValue, fmt.Errorf("raising 10 to the power of precision+1: %w", err)
 	}
 
 	// 2*10^(precision+1)
 	{
 		v, err := two.Mul(maxError)
 		if err != nil {
-			return nil, fmt.Errorf("multiplying max error by 2: %w", err)
+			var zeroValue Decimal
+
+			return zeroValue, fmt.Errorf("multiplying max error by 2: %w", err)
 		}
 
 		maxError = v
@@ -46,7 +50,9 @@ func computeMaxError(intToDecimal []Decimal, precision uint32) (Decimal, error) 
 	{
 		v, err := one.Div(maxError)
 		if err != nil {
-			return nil, fmt.Errorf("dividing 1 by max error: %w", err)
+			var zeroValue Decimal
+
+			return zeroValue, fmt.Errorf("dividing 1 by max error: %w", err)
 		}
 
 		maxError = v
@@ -57,7 +63,7 @@ func computeMaxError(intToDecimal []Decimal, precision uint32) (Decimal, error) 
 
 // computeTaylorTermsCache creates an in-memory cache of the constant part of the Taylor series terms.
 // It will compute all the "terms"-first terms for the provided day count convention.
-func computeTaylorTermsCache(root Decimal, intToDecimal []Decimal, terms uint32) ([]Decimal, error) {
+func computeTaylorTermsCache[Decimal Operator[Decimal]](root Decimal, intToDecimal []Decimal, terms uint64) ([]Decimal, error) {
 	cache := make([]Decimal, terms)
 
 	one := intToDecimal[1]
@@ -70,7 +76,7 @@ func computeTaylorTermsCache(root Decimal, intToDecimal []Decimal, terms uint32)
 	derivativeTermAcc := one
 	factorialTermAcc := one
 
-	for n := uint32(1); n < terms; n++ {
+	for n := uint64(1); n < terms; n++ {
 		// n! = n*(n-1)!
 		{
 			v, err := factorialTermAcc.Mul(intToDecimal[n])
