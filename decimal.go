@@ -6,7 +6,7 @@ type Operator[Decimal any] interface {
 	Sub(n Decimal) (Decimal, error)
 	Add(n Decimal) (Decimal, error)
 	Abs() (Decimal, error)
-	LessThan(n Decimal) (bool, error)
+	LessThanOrEqual(n Decimal) (bool, error)
 	PowInt(n uint64) (Decimal, error)
 	Truncate(places uint64) (Decimal, error)
 	IsNegative() (bool, error)

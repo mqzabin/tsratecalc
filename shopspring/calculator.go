@@ -11,13 +11,12 @@ import (
 var (
 	ErrConfigPrecisionNegative = errors.New("result precision must be positive")
 	ErrRootNegative            = errors.New("root must be positive")
-	ErrMaxIterationsNegative   = errors.New("max iterations must be positive")
 )
 
 type Config struct {
-	Root            int32
-	MaxIterations   int32
-	ResultPrecision int32
+	Root              int32
+	Precision         int32
+	ConvergenceRadius shopspring.Decimal
 }
 
 type Calculator struct {
@@ -25,7 +24,7 @@ type Calculator struct {
 }
 
 func NewCalculator(cfg Config) (*Calculator, error) {
-	if cfg.ResultPrecision < 0 {
+	if cfg.Precision < 0 {
 		return nil, ErrConfigPrecisionNegative
 	}
 
@@ -33,15 +32,13 @@ func NewCalculator(cfg Config) (*Calculator, error) {
 		return nil, ErrRootNegative
 	}
 
-	if cfg.MaxIterations < 0 {
-		return nil, ErrMaxIterationsNegative
-	}
-
 	underlyingCfg := tsratecalc.Config[decimal]{
-		Root:          uint64(cfg.Root),
-		Precision:     uint64(cfg.ResultPrecision),
-		NewFromInt:    newFromIntFunc,
-		MaxIterations: uint64(cfg.MaxIterations),
+		Root:       uint64(cfg.Root),
+		Precision:  uint64(cfg.Precision),
+		NewFromInt: newFromIntFunc,
+		ConvergenceRadius: decimal{
+			cfg.ConvergenceRadius,
+		},
 	}
 
 	calc, err := tsratecalc.NewCalculator[decimal](underlyingCfg)
@@ -63,4 +60,8 @@ func (c *Calculator) ComputeRate(rate shopspring.Decimal) (shopspring.Decimal, e
 	}
 
 	return result.d, nil
+}
+
+func (c *Calculator) TermsCacheLen() int {
+	return c.calc.TermsCacheLen()
 }

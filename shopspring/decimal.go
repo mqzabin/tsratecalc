@@ -66,8 +66,8 @@ func (d decimal) Abs() (decimal, error) {
 	}, nil
 }
 
-func (d decimal) LessThan(n decimal) (bool, error) {
-	return d.d.LessThan(n.d), nil
+func (d decimal) LessThanOrEqual(n decimal) (bool, error) {
+	return d.d.LessThanOrEqual(n.d), nil
 }
 
 func (d decimal) PowInt(n uint64) (decimal, error) {

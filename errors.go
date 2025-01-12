@@ -5,7 +5,7 @@ import "fmt"
 type ConvergenceError[Decimal Operator[Decimal]] struct {
 	Precision     uint64
 	Rate          Decimal
-	Iterations    uint64
+	Iterations    int
 	LastError     Decimal
 	PartialResult Decimal
 }

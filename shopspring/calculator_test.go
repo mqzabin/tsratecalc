@@ -1,6 +1,7 @@
 package shopspring_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/mqzabin/fuzzdecimal"
@@ -9,18 +10,48 @@ import (
 	"github.com/mqzabin/tsratecalc/shopspring"
 )
 
+func TestNewCalculator(t *testing.T) {
+	t.Parallel()
+
+	testCases := []struct {
+		name   string
+		config shopspring.Config
+	}{
+		{
+			name: "",
+			config: shopspring.Config{
+				Root:              252,
+				Precision:         30,
+				ConvergenceRadius: decimal.New(9, -1),
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			calc, err := shopspring.NewCalculator(tc.config)
+			if err != nil {
+				t.Fatalf("unexpected error: %s", err.Error())
+			}
+
+			fmt.Println(calc.TermsCacheLen())
+		})
+	}
+}
+
 func FuzzComputeRateShopspring(f *testing.F) {
 	const (
-		maxIterations     = 100
 		resultPrecision   = 30
 		divisionPrecision = 30
 		root              = 252
 	)
 
 	cfg := shopspring.Config{
-		Root:            root,
-		MaxIterations:   maxIterations,
-		ResultPrecision: resultPrecision,
+		Root:              root,
+		Precision:         resultPrecision,
+		ConvergenceRadius: decimal.New(9, -1), // 0.9
 	}
 
 	calc, err := shopspring.NewCalculator(cfg)
@@ -49,8 +80,6 @@ func FuzzComputeRateShopspring(f *testing.F) {
 				if err != nil {
 					t.Fatalf("ComputeRate: %v", err)
 				}
-
-				t.Log(x1.String())
 
 				return res.StringFixed(resultPrecision)
 			},
