@@ -5,7 +5,7 @@ import (
 
 	shopspring "github.com/shopspring/decimal"
 
-	"github.com/mqzabin/tsratecalc/basecalc"
+	"github.com/mqzabin/tsratecalc"
 )
 
 var (
@@ -18,12 +18,10 @@ type Config struct {
 	Root            int32
 	MaxIterations   int32
 	ResultPrecision int32
-	DivPrecision    int32
 }
 
 type Calculator struct {
-	calc         *basecalc.Calculator[decimal]
-	divPrecision int32
+	calc *tsratecalc.Calculator[decimal]
 }
 
 func NewCalculator(cfg Config) (*Calculator, error) {
@@ -39,26 +37,25 @@ func NewCalculator(cfg Config) (*Calculator, error) {
 		return nil, ErrMaxIterationsNegative
 	}
 
-	underlyingCfg := basecalc.Config[decimal]{
+	underlyingCfg := tsratecalc.Config[decimal]{
 		Root:          uint64(cfg.Root),
 		Precision:     uint64(cfg.ResultPrecision),
-		NewFromInt:    newFromIntFunc(cfg.DivPrecision),
+		NewFromInt:    newFromIntFunc,
 		MaxIterations: uint64(cfg.MaxIterations),
 	}
 
-	calc, err := basecalc.NewCalculator[decimal](underlyingCfg)
+	calc, err := tsratecalc.NewCalculator[decimal](underlyingCfg)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Calculator{
-		calc:         calc,
-		divPrecision: cfg.DivPrecision,
+		calc: calc,
 	}, nil
 }
 
 func (c *Calculator) ComputeRate(rate shopspring.Decimal) (shopspring.Decimal, error) {
-	d := decimal{d: rate, divPrecision: c.divPrecision}
+	d := decimal{d: rate}
 
 	result, err := c.calc.ComputeRate(d)
 	if err != nil {

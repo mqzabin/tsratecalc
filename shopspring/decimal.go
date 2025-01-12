@@ -6,7 +6,7 @@ import (
 
 	shopspring "github.com/shopspring/decimal"
 
-	"github.com/mqzabin/tsratecalc/basecalc"
+	"github.com/mqzabin/tsratecalc"
 )
 
 var (
@@ -16,57 +16,53 @@ var (
 )
 
 type decimal struct {
-	d            shopspring.Decimal
-	divPrecision int32
+	d shopspring.Decimal
 }
 
-var _ basecalc.Operator[decimal] = decimal{}
+var _ tsratecalc.Operator[decimal] = decimal{}
 
-func newFromIntFunc(divPrecision int32) func(uint64) (decimal, error) {
-	return func(n uint64) (decimal, error) {
-		if n > math.MaxInt64 {
-			return decimal{}, fmt.Errorf("%w: %d is too large", ErrNewFromIntTooLarge, n)
-		}
+func newFromIntFunc(n uint64) (decimal, error) {
 
-		return decimal{
-			d:            shopspring.New(int64(n), 0),
-			divPrecision: divPrecision,
-		}, nil
+	if n > math.MaxInt64 {
+		return decimal{}, fmt.Errorf("%w: %d is too large", ErrNewFromIntTooLarge, n)
 	}
+
+	return decimal{
+		d: shopspring.New(int64(n), 0),
+	}, nil
 }
 
 func (d decimal) Mul(n decimal) (decimal, error) {
 	return decimal{
-		d:            d.d.Mul(n.d),
-		divPrecision: d.divPrecision,
+		d: d.d.Mul(n.d),
 	}, nil
 }
 
-func (d decimal) Div(n decimal) (decimal, error) {
+func (d decimal) DivRound(n decimal, places uint64) (decimal, error) {
+	if places > math.MaxInt32 {
+		return decimal{}, fmt.Errorf("%w: %d is too large", ErrRoundTooLarge, places)
+	}
+
 	return decimal{
-		d:            d.d.DivRound(n.d, d.divPrecision),
-		divPrecision: d.divPrecision,
+		d: d.d.DivRound(n.d, int32(places)),
 	}, nil
 }
 
 func (d decimal) Sub(n decimal) (decimal, error) {
 	return decimal{
-		d:            d.d.Sub(n.d),
-		divPrecision: d.divPrecision,
+		d: d.d.Sub(n.d),
 	}, nil
 }
 
 func (d decimal) Add(n decimal) (decimal, error) {
 	return decimal{
-		d:            d.d.Add(n.d),
-		divPrecision: d.divPrecision,
+		d: d.d.Add(n.d),
 	}, nil
 }
 
 func (d decimal) Abs() (decimal, error) {
 	return decimal{
-		d:            d.d.Abs(),
-		divPrecision: d.divPrecision,
+		d: d.d.Abs(),
 	}, nil
 }
 
@@ -82,19 +78,17 @@ func (d decimal) PowInt(n uint64) (decimal, error) {
 	res, err := d.d.PowInt32(int32(n))
 
 	return decimal{
-		d:            res,
-		divPrecision: d.divPrecision,
+		d: res,
 	}, err
 }
 
-func (d decimal) Round(n uint64) (decimal, error) {
+func (d decimal) Truncate(n uint64) (decimal, error) {
 	if n > math.MaxInt32 {
 		return decimal{}, fmt.Errorf("%w: %d is too large", ErrRoundTooLarge, n)
 	}
 
 	return decimal{
-		d:            d.d.Round(int32(n)),
-		divPrecision: d.divPrecision,
+		d: d.d.Truncate(int32(n)),
 	}, nil
 }
 
