@@ -31,7 +31,7 @@ func (c *Calculator[Decimal]) ComputeRate(rate Decimal) (Decimal, error) {
 	// - the maximum number of iterations is achieved.
 	for n := uint64(1); n < uint64(len(c.taylorTerms)); n++ {
 		// variableComponent is rate^n
-		variableComponent, err = rate.PowInt(n)
+		variableComponent, err = variableComponent.Mul(rate)
 		if err != nil {
 			return c.zero, fmt.Errorf("computing rate^%d: %w", n, err)
 		}

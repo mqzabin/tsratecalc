@@ -9,6 +9,5 @@ type Operator[Decimal any] interface {
 	LessThanOrEqual(n Decimal) (bool, error)
 	PowInt(n uint64) (Decimal, error)
 	Truncate(places uint64) (Decimal, error)
-	IsNegative() (bool, error)
 	String() string
 }

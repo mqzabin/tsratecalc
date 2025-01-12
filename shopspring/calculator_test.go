@@ -10,6 +10,60 @@ import (
 	"github.com/mqzabin/tsratecalc/shopspring"
 )
 
+func BenchmarkCalculator_ComputeRate(b *testing.B) {
+	const (
+		resultPrecision   = 30
+		divisionPrecision = 30
+		root              = 252
+	)
+
+	rate := decimal.New(1, -1) // 10%
+
+	b.ReportAllocs()
+
+	b.Run("tsratecalc", func(b *testing.B) {
+		cfg := shopspring.Config{
+			Root:              root,
+			Precision:         resultPrecision,
+			ConvergenceRadius: decimal.New(9, -1),
+		}
+
+		calc, err := shopspring.NewCalculator(cfg)
+		if err != nil {
+			b.Fatalf("NewCalculator: %v", err)
+		}
+
+		var avoidOptimizations decimal.Decimal
+
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			avoidOptimizations, _ = calc.ComputeRate(rate)
+		}
+
+		if avoidOptimizations.IsZero() {
+			b.Fatalf("unexpected zero result")
+		}
+	})
+
+	b.Run("shopspring", func(b *testing.B) {
+		one := decimal.NewFromInt(1)
+		refExponent := one.DivRound(decimal.NewFromInt(root), divisionPrecision)
+
+		var avoidOptimizations decimal.Decimal
+
+		b.ResetTimer()
+
+		for i := 0; i < b.N; i++ {
+			avoidOptimizations = rate.Add(one).Pow(refExponent).Sub(one).Truncate(resultPrecision)
+		}
+
+		if avoidOptimizations.IsZero() {
+			b.Fatalf("unexpected zero result")
+		}
+	})
+}
+
 func TestNewCalculator(t *testing.T) {
 	t.Parallel()
 

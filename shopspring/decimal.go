@@ -92,10 +92,6 @@ func (d decimal) Truncate(n uint64) (decimal, error) {
 	}, nil
 }
 
-func (d decimal) IsNegative() (bool, error) {
-	return d.d.IsNegative(), nil
-}
-
 func (d decimal) String() string {
 	return d.d.String()
 }
