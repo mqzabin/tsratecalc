@@ -9,6 +9,7 @@ import (
 func computeTaylorTermsCache[Decimal Operator[Decimal]](
 	root Decimal,
 	convergenceRadius Decimal,
+	maxTermsCache uint64,
 	maxError Decimal,
 	precision uint64,
 	newFromInt func(n uint64) (Decimal, error),
@@ -43,8 +44,7 @@ func computeTaylorTermsCache[Decimal Operator[Decimal]](
 		lastUpperBoundaryError      = zero
 	)
 
-	// TODO: Remove magic number
-	for n := uint64(1); n < 30000; n++ {
+	for n := uint64(1); n < maxTermsCache; n++ {
 		nDecimal, err := newFromInt(n)
 		if err != nil {
 			return nil, fmt.Errorf("creating '%d' decimal from integer: %w", n, err)

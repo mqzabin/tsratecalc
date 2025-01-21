@@ -2,25 +2,32 @@ package tsratecalc
 
 import "fmt"
 
-// Calculator is a calculator to convert an annual interest rate to a daily interest rate.
-// Use the NewCalculator function to create it.
+// Calculator is a calculator for "(1+x)^(1/n)-1", with positive integer n.
+// It uses a Taylor series expansion around x=0 to compute the rate value.
+//
+// It could be used for any arbitrary/fixed precision decimal that implements the Operator interface.
 type Calculator[Decimal Operator[Decimal]] struct {
+	// precision is the number of decimal places to consider in the calculations.
 	precision uint64
 	// maxError is the maximum value for the error on calculations. Its value is 2*10^(-(precision+1)).
 	maxError Decimal
 	// taylorTerms is an in-memory cache for the Taylor series terms constant multipliers.
 	taylorTerms []Decimal
-
+	// zero store the zero value for the Decimal type.
 	zero Decimal
-	one  Decimal
-
+	// one store the one value for the Decimal type.
+	one Decimal
+	// convergenceUpperBoundary is the upper boundary for the rate value to be considered inside the convergence radius.
 	convergenceUpperBoundary Decimal
+	// convergenceLowerBoundary is the lower boundary for the rate value to be considered inside the convergence radius.
 	convergenceLowerBoundary Decimal
 }
 
-// NewCalculator receives a precision value and a day count convention to return a Calculator.
+// NewCalculator returns a new Calculator given a Config for a specific Decimal type.
+// The Decimal type should implement the Operator interface.
 func NewCalculator[Decimal Operator[Decimal]](cfg Config[Decimal]) (*Calculator[Decimal], error) {
-	if err := validateConfig(cfg); err != nil {
+	cfg, err := validateConfig(cfg)
+	if err != nil {
 		return nil, fmt.Errorf("validating config: %w", err)
 	}
 
@@ -34,7 +41,7 @@ func NewCalculator[Decimal Operator[Decimal]](cfg Config[Decimal]) (*Calculator[
 		return nil, fmt.Errorf("computing max error: %w", err)
 	}
 
-	taylorTerms, err := computeTaylorTermsCache(root, cfg.ConvergenceRadius, maxError, cfg.Precision, cfg.NewFromInt)
+	taylorTerms, err := computeTaylorTermsCache(root, cfg.ConvergenceRadius, cfg.MaxTermsCache, maxError, cfg.Precision, cfg.NewFromInt)
 	if err != nil {
 		return nil, fmt.Errorf("computing taylor terms cache: %w", err)
 	}
@@ -67,6 +74,7 @@ func NewCalculator[Decimal Operator[Decimal]](cfg Config[Decimal]) (*Calculator[
 	}, nil
 }
 
+// TermsCacheLen returns the number of Taylor terms stored in the calculator's cache.
 func (c *Calculator[Decimal]) TermsCacheLen() int {
 	return len(c.taylorTerms)
 }

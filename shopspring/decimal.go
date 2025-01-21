@@ -15,6 +15,7 @@ var (
 	ErrRoundTooLarge      = fmt.Errorf("rounding places:  max allowed is %d", math.MaxInt32)
 )
 
+// decimal implements the tsratecalc.Operator interface for the "github.com/shopspring/decimal".Decimal type.
 type decimal struct {
 	d shopspring.Decimal
 }

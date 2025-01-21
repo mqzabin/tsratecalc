@@ -2,16 +2,15 @@ package tsratecalc
 
 import "fmt"
 
-var ErrRateOutsideConvergenceBoundaries = fmt.Errorf("rate is than convergence boundaries")
+var ErrRateOutsideConvergenceBoundaries = fmt.Errorf("rate is outside convergence boundaries")
 
-// ComputeRate receives an annual interest rate and returns the daily interest rate.
-// The provided rate should belong to the [ -0.8, 0.8 ] interval.
+// ComputeRate receives a rate value and returns "(1+rate)^(1/root) - 1" using a Taylor Series expansion around rate=0.
+// The root is defined in the calculator Config.
 //
-// !!ATTENTION!! The rate value should be provided in decimal format, e.g. inform 0.13 for a 13% annual interest rate.
+// The rate value should fall within the Config.ConvergenceRadius interval, around rate=0,
+// otherwise ErrRateOutsideConvergenceBoundaries will be returned.
 //
-// It could return an ErrMaxIterationsAchieved error if the max number of iterations is achieved without convergence.
-// If you receive ErrMaxIterationsAchieved it's possible that you've set a too high precision or the rate value
-// is outside the [ -0.8, 0.8 ] interval (or near to the boundaries).
+// It will return ConvergenceError if the desired precision is not achieved after the maximum number of iterations.
 func (c *Calculator[Decimal]) ComputeRate(rate Decimal) (Decimal, error) {
 	err := c.validateConvergence(rate)
 	if err != nil {

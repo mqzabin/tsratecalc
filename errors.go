@@ -2,11 +2,17 @@ package tsratecalc
 
 import "fmt"
 
+// ConvergenceError is an error type for when the rate value could not converge to the desired precision.
 type ConvergenceError[Decimal Operator[Decimal]] struct {
-	Precision     uint64
-	Rate          Decimal
-	Iterations    int
-	LastError     Decimal
+	// Precision is the desired number of decimal places to consider in the calculations.
+	Precision uint64
+	// Rate is the rate value that could not converge.
+	Rate Decimal
+	// Iterations is the number of iterations that were performed.
+	Iterations int
+	// LastError is the last approximation error.
+	LastError Decimal
+	// PartialResult is the partial result of the calculation.
 	PartialResult Decimal
 }
 
