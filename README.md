@@ -11,7 +11,9 @@ The calculator will automatically expand the Taylor terms up to the necessary "n
 
 The Taylor Series expansion is given by:
 
-$$ f(x) = \sum_{n=1}^{\infty} \frac{1}{c^{n}n!} \Bigg(\prod_{i=1}^{n-1} (1 - ic) \Bigg)  x^n $$
+$$
+f(x) = \sum_{n=1}^{\infty} \frac{1}{c^{n}n!} \left(\prod_{i=1}^{n-1} (1 - ic) \right)  x^n
+$$
 
 # Usage
 
@@ -31,7 +33,6 @@ type Operator[Decimal any] interface {
 	Truncate(places uint64) (Decimal, error)
 	String() string
 }
-
 ```
 
 There are some subpackages that implement the adapters for some decimal types:
